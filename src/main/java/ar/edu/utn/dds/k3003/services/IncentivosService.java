@@ -9,6 +9,8 @@ import ar.edu.utn.dds.k3003.repositories.DonadorRepository;
 import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
 import ar.edu.utn.dds.k3003.repositories.MisionRepository;
 
+import java.util.List;
+
 public class IncentivosService {
 
     private DonadorRepository donadorRepository;
@@ -48,6 +50,11 @@ public class IncentivosService {
         return insigniaRepository.buscar(id);
     }
 
+    public List<Insignia> buscarTodasLasInsignias() {
+
+        return insigniaRepository.buscarTodos();
+    }
+
     // =========================
     // MISIONES
     // =========================
@@ -64,6 +71,11 @@ public class IncentivosService {
     ) {
 
         return misionRepository.buscar(id);
+    }
+
+    public List<Mision> buscarTodasLasMisiones() {
+
+        return misionRepository.buscarTodos();
     }
 
     // =========================

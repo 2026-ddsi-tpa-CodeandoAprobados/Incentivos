@@ -280,4 +280,75 @@ public class Fachada implements FachadaIncentivos {
             donadorID
     );
   }
+
+  public List<InsigniaDTO> getInsignias() {
+
+    return service.buscarTodasLasInsignias()
+            .stream()
+            .map(i -> new InsigniaDTO(
+                    i.getId(),
+                    i.getNombre(),
+                    i.getDescripcion()
+            ))
+            .toList();
+  }
+
+  public InsigniaDTO getInsignia(
+          String id
+  ) {
+
+    Insignia insignia =
+            service.buscarInsignia(id);
+
+    if (insignia == null) {
+      throw new RuntimeException();
+    }
+
+    return new InsigniaDTO(
+            insignia.getId(),
+            insignia.getNombre(),
+            insignia.getDescripcion()
+    );
+  }
+
+  public List<MisionDTO> getMisiones() {
+
+    return service.buscarTodasLasMisiones()
+            .stream()
+            .map(m -> new MisionDTO(
+                    m.getId(),
+                    m.getNombre(),
+                    m.getInsigniaID(),
+                    m.getCategoriaInicio(),
+                    m.getCategoriaFin(),
+                    ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum.valueOf(
+                            m.getTipo().name()
+                    )
+            ))
+            .toList();
+  }
+
+  public MisionDTO getMision(
+          String id
+  ) {
+
+    Mision mision =
+            service.buscarMision(id);
+
+    if (mision == null) {
+      throw new RuntimeException();
+    }
+
+    return new MisionDTO(
+            mision.getId(),
+            mision.getNombre(),
+            mision.getInsigniaID(),
+            mision.getCategoriaInicio(),
+            mision.getCategoriaFin(),
+            ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum.valueOf(
+                    mision.getTipo().name()
+            )
+    );
+  }
+
 }
