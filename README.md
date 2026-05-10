@@ -31,20 +31,40 @@ Modificar estos archivos implica desaprobar inmediatamente la instancia de entre
 ---
 
 ### ayuda memoria lucas
+# Incentivos - Entrega 2
 
-pruebas:
-- mvn test
+## Pruebas
+mvn test
 
-iniciar server:
-- mvn spring-boot:run
+## Iniciar server
+mvn spring-boot:run
 
-probar end points:
-- http://localhost:8080/swagger-ui/index.html#/
+## Swagger / probar endpoints
+http://localhost:8080/swagger-ui/index.html#/
 
-end points json:
-- http://localhost:8080/v3/api-docs
+## Endpoints JSON
+http://localhost:8080/v3/api-docs
 
-errores con java tirar:
-- export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
-- export PATH=$JAVA_HOME/bin:$PATH
+## Errores con Java
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
+export PATH=$JAVA_HOME/bin:$PATH
+
+## Docker build
+docker build -t incentivos .
+
+## Docker run
+docker run -p 8080:8080 incentivos
+
+## Swagger con Docker
+http://localhost:8080/swagger-ui/index.html#/
+
+## Endpoints
+GET /insignias
+POST /insignias
+GET /insignias/{id}
+
+GET /misiones
+POST /misiones
+GET /misiones/{id}
+
 
