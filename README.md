@@ -2,18 +2,18 @@
 # 🧪 2026 - Trabajo Práctico Anual
 
 ## 👤 Datos del Alumno
-- **Nombre:**
-- **Apellido:**
+- **Nombre: Lucas**
+- **Apellido: Seijas**
 
 ---
 
 🧩 Componente Desarrollado
--
+- Incentivos
 
 ---
 
 🧩 Link al despliegue en Render
--
+- Aun no :(
 
 ---
 

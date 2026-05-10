@@ -6,8 +6,15 @@ import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaIncentivos;
 import ar.edu.utn.dds.k3003.exceptions.DonadorNoEncontradoException;
-import ar.edu.utn.dds.k3003.model.*;
+import ar.edu.utn.dds.k3003.model.Donacion;
+import ar.edu.utn.dds.k3003.model.DonadorIncentivos;
+import ar.edu.utn.dds.k3003.model.Insignia;
+import ar.edu.utn.dds.k3003.model.Mision;
+import ar.edu.utn.dds.k3003.model.TipoMisionEnum;
 import ar.edu.utn.dds.k3003.repositories.DonadorRepository;
+import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
+import ar.edu.utn.dds.k3003.repositories.MisionRepository;
+import ar.edu.utn.dds.k3003.services.IncentivosService;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -15,31 +22,16 @@ import java.util.UUID;
 
 public class Fachada implements FachadaIncentivos {
 
-  private DonadorRepository repo = new DonadorRepository();
+  private IncentivosService service =
+          new IncentivosService(
+                  new DonadorRepository(),
+                  new MisionRepository(),
+                  new InsigniaRepository()
+          );
 
   private FachadaDonadoresYEntidades fachadaDonadoresYEntidades;
 
   private FachadaDonaciones fachadaDonaciones;
-
-  public void agregarDonacionADonador(
-          String donadorID,
-          Donacion donacion
-  ) {
-
-    DonadorIncentivos donador =
-            repo.buscar(donadorID);
-
-    if (donador == null) {
-
-      donador = new DonadorIncentivos(
-              donadorID
-      );
-
-      repo.guardar(donador);
-    }
-
-    donador.agregarDonacion(donacion);
-  }
 
   @Override
   public void setFachadaDonadoresYEntidades(
@@ -55,17 +47,40 @@ public class Fachada implements FachadaIncentivos {
     this.fachadaDonaciones = fachadaDonaciones;
   }
 
+  public void agregarDonacionADonador(
+          String donadorID,
+          Donacion donacion
+  ) {
+    service.agregarDonacion(
+            donadorID,
+            donacion
+    );
+  }
+
   @Override
   public InsigniaDTO agregarInsignia(
           InsigniaDTO insignia
   ) {
+
     if (insignia == null || insignia.id() != null) {
       throw new RuntimeException();
     }
+
+    String id = UUID.randomUUID().toString();
+
+    Insignia nueva =
+            new Insignia(
+                    id,
+                    insignia.nombre(),
+                    insignia.descripcion()
+            );
+
+    service.guardarInsignia(nueva);
+
     return new InsigniaDTO(
-            UUID.randomUUID().toString(),
-            insignia.nombre(),
-            insignia.descripcion()
+            nueva.getId(),
+            nueva.getNombre(),
+            nueva.getDescripcion()
     );
   }
 
@@ -73,16 +88,36 @@ public class Fachada implements FachadaIncentivos {
   public MisionDTO agregarMision(
           MisionDTO mision
   ) {
+
     if (mision == null || mision.id() != null) {
       throw new RuntimeException();
     }
+
+    String id = UUID.randomUUID().toString();
+
+    Mision nueva =
+            new Mision(
+                    id,
+                    mision.nombre(),
+                    mision.insigniaID(),
+                    mision.categoriaInicio(),
+                    mision.categoriaFin(),
+                    TipoMisionEnum.valueOf(
+                            mision.tipo().name()
+                    )
+            );
+
+    service.guardarMision(nueva);
+
     return new MisionDTO(
-            UUID.randomUUID().toString(),
-            mision.nombre(),
-            mision.insigniaID(),
-            mision.categoriaInicio(),
-            mision.categoriaFin(),
-            mision.tipo()
+            nueva.getId(),
+            nueva.getNombre(),
+            nueva.getInsigniaID(),
+            nueva.getCategoriaInicio(),
+            nueva.getCategoriaFin(),
+            ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum.valueOf(
+                    nueva.getTipo().name()
+            )
     );
   }
 
@@ -91,27 +126,41 @@ public class Fachada implements FachadaIncentivos {
           String donadorId,
           InsigniaDTO insigniaDTO
   ) {
+
     if (insigniaDTO == null) {
       throw new RuntimeException();
     }
+
     try {
-      fachadaDonadoresYEntidades.buscarDonadorPorID(
-              donadorId
-      );
+
+      fachadaDonadoresYEntidades
+              .buscarDonadorPorID(donadorId);
+
     } catch (DonadorNoEncontradoException e) {
+
       throw new RuntimeException();
     }
-    DonadorIncentivos d = repo.buscar(donadorId);
-    if (d == null) {
-      d = new DonadorIncentivos(donadorId);
-      repo.guardar(d);
+
+    Insignia insignia =
+            service.buscarInsignia(
+                    insigniaDTO.id()
+            );
+
+    if (insignia == null) {
+
+      insignia =
+              new Insignia(
+                      insigniaDTO.id(),
+                      insigniaDTO.nombre(),
+                      insigniaDTO.descripcion()
+              );
+
+      service.guardarInsignia(insignia);
     }
-    d.agregarInsignia(
-            new Insignia(
-                    insigniaDTO.id(),
-                    insigniaDTO.nombre(),
-                    insigniaDTO.descripcion()
-            )
+
+    service.asignarInsignia(
+            donadorId,
+            insignia
     );
   }
 
@@ -119,10 +168,10 @@ public class Fachada implements FachadaIncentivos {
   public List<InsigniaDTO> getInsigniasDeDonador(
           String donadorId
   ) {
-    DonadorIncentivos d = repo.buscar(donadorId);
-    if (d == null) {
-      throw new RuntimeException();
-    }
+
+    DonadorIncentivos d =
+            service.obtenerDonador(donadorId);
+
     return d.getInsignias()
             .stream()
             .map(i -> new InsigniaDTO(
@@ -138,32 +187,46 @@ public class Fachada implements FachadaIncentivos {
           String donadorID,
           MisionDTO misionDTO
   ) {
+
     if (misionDTO == null) {
       throw new RuntimeException();
     }
+
     try {
-      fachadaDonadoresYEntidades.buscarDonadorPorID(
-              donadorID
-      );
+
+      fachadaDonadoresYEntidades
+              .buscarDonadorPorID(donadorID);
+
     } catch (DonadorNoEncontradoException e) {
+
       throw new RuntimeException();
     }
-    DonadorIncentivos d = repo.buscar(donadorID);
-    if (d == null) {
-      d = new DonadorIncentivos(donadorID);
-      repo.guardar(d);
+
+    Mision mision =
+            service.buscarMision(
+                    misionDTO.id()
+            );
+
+    if (mision == null) {
+
+      mision =
+              new Mision(
+                      misionDTO.id(),
+                      misionDTO.nombre(),
+                      misionDTO.insigniaID(),
+                      misionDTO.categoriaInicio(),
+                      misionDTO.categoriaFin(),
+                      TipoMisionEnum.valueOf(
+                              misionDTO.tipo().name()
+                      )
+              );
+
+      service.guardarMision(mision);
     }
-    d.setMisionEnCurso(
-            new Mision(
-                    misionDTO.id(),
-                    misionDTO.nombre(),
-                    misionDTO.insigniaID(),
-                    misionDTO.categoriaInicio(),
-                    misionDTO.categoriaFin(),
-                    TipoMisionEnum.valueOf(
-                            misionDTO.tipo().name()
-                    )
-            )
+
+    service.asignarMision(
+            donadorID,
+            mision
     );
   }
 
@@ -171,14 +234,17 @@ public class Fachada implements FachadaIncentivos {
   public MisionDTO getMisionEnCursoDeDonador(
           String donadorID
   ) {
-    DonadorIncentivos d = repo.buscar(donadorID);
-    if (d == null) {
-      throw new RuntimeException();
-    }
+
+    DonadorIncentivos d =
+            service.obtenerDonador(donadorID);
+
     if (d.getMisionEnCurso() == null) {
       return null;
     }
-    Mision m = d.getMisionEnCurso();
+
+    Mision m =
+            d.getMisionEnCurso();
+
     return new MisionDTO(
             m.getId(),
             m.getNombre(),
@@ -195,48 +261,23 @@ public class Fachada implements FachadaIncentivos {
   public void procesarDonador(
           String donadorID
   ) throws NoSuchElementException {
+
     if (donadorID == null) {
       throw new RuntimeException();
     }
+
     try {
-      fachadaDonadoresYEntidades.buscarDonadorPorID(
-              donadorID
-      );
+
+      fachadaDonadoresYEntidades
+              .buscarDonadorPorID(donadorID);
+
     } catch (DonadorNoEncontradoException e) {
+
       throw new RuntimeException();
     }
-    if (!repo.existe(donadorID)) {
-      repo.guardar(
-              new DonadorIncentivos(donadorID)
-      );
-    }
-    DonadorIncentivos donador =
-            repo.buscar(donadorID);
-    Mision mision =
-            donador.getMisionEnCurso();
-    if (mision == null) {
-      return;
-    }
-    ProcesadorMisiones procesador =
-            new ProcesadorMisiones();
-    boolean cumplida =
-            procesador.procesar(
-                    mision,
-                    donador.getDonaciones()
-            );
-    if (cumplida) {
-      donador.setCategoria(
-              mision.getCategoriaFin()
-      );
-      donador.agregarInsignia(
-              new Insignia(
-                      mision.getInsigniaID(),
-                      "Insignia ganada",
-                      "Otorgada por completar misión"
-              )
-      );
-    }
+
+    service.procesarDonador(
+            donadorID
+    );
   }
 }
-
-
