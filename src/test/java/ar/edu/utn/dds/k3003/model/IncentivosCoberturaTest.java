@@ -1,211 +1,179 @@
 /*
+
 package ar.edu.utn.dds.k3003;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import ar.edu.utn.dds.k3003.model.DonadorIncentivos;
+import ar.edu.utn.dds.k3003.model.Insignia;
+import ar.edu.utn.dds.k3003.model.Mision;
+import ar.edu.utn.dds.k3003.model.TipoMisionEnum;
+import ar.edu.utn.dds.k3003.repositories.DonadorRepository;
+import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
+import ar.edu.utn.dds.k3003.repositories.MisionRepository;
+import ar.edu.utn.dds.k3003.services.IncentivosService;
+import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 
-import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.DonadorDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.EstadoDonadorEnum;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
-import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
-import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 public class IncentivosCoberturaTest {
 
-  private Fachada fachada;
+    private DonadorRepository donadorRepository;
+    private MisionRepository misionRepository;
+    private InsigniaRepository insigniaRepository;
 
-  private FachadaDonadoresYEntidades fachadaDonadores;
+    private IncentivosService service;
 
-  @BeforeEach
-  void setUp() {
+    @BeforeEach
+    void init() {
+        donadorRepository = mock(DonadorRepository.class);
+        misionRepository = mock(MisionRepository.class);
+        insigniaRepository = mock(InsigniaRepository.class);
 
-    fachada = new Fachada();
+        service = new IncentivosService(
+                donadorRepository,
+                misionRepository,
+                insigniaRepository
+        );
+    }
 
-    fachadaDonadores =
-            mock(FachadaDonadoresYEntidades.class);
+    @Test
+    void guardarYBuscarInsignia() {
 
-    fachada.setFachadaDonadoresYEntidades(
-            fachadaDonadores
-    );
+        Insignia insignia =
+                new Insignia("1", "Gold", "Descripcion");
 
-    fachada.setFachadaDonaciones(
-            mock(FachadaDonaciones.class)
-    );
-  }
+        when(insigniaRepository.findById("1"))
+                .thenReturn(Optional.of(insignia));
 
-  @Test
-  void testProcesarDonadorCobertura() {
+        service.guardarInsignia(insignia);
 
-    when(
-            fachadaDonadores.buscarDonadorPorID(
-                    "donador123"
-            )
-    ).thenReturn(
-            new DonadorDTO(
-                    "donador123",
-                    "nombre",
-                    "apellido",
-                    20,
-                    "direccion",
-                    "mail",
-                    "telefono",
-                    EstadoDonadorEnum.VERIFICADO,
-                    "zona"
-            )
-    );
+        Insignia buscada =
+                service.buscarInsignia("1");
 
-    MisionDTO mision =
-            fachada.agregarMision(
-                    new MisionDTO(
-                            null,
-                            "mision",
-                            "insignia",
-                            null,
-                            null,
-                            TipoMisionEnum.COMPLETITUD
-                    )
-            );
+        assertNotNull(buscada);
+        assertEquals("Gold", buscada.getNombre());
 
-    fachada.asignarMisionADonador(
-            "donador123",
-            mision
-    );
+        verify(insigniaRepository).save(insignia);
+    }
 
-    assertDoesNotThrow(
-            () -> fachada.procesarDonador(
-                    "donador123"
-            )
-    );
+    @Test
+    void buscarInsigniaInexistente() {
 
-    assertThrows(
-            RuntimeException.class,
-            () -> fachada.procesarDonador(null)
-    );
-  }
+        when(insigniaRepository.findById("999"))
+                .thenReturn(Optional.empty());
 
-  @Test
-  void testAgregarInsigniaYidNotNull() {
+        assertNull(
+                service.buscarInsignia("999")
+        );
+    }
 
-    InsigniaDTO conId =
-            new InsigniaDTO(
-                    "ya-tengo-id",
-                    "nombre",
-                    "desc"
-            );
+    @Test
+    void guardarYBuscarMision() {
 
-    assertThrows(
-            RuntimeException.class,
-            () -> fachada.agregarInsignia(conId)
-    );
-  }
+        Mision mision =
+                new Mision(
+                        "1",
+                        "Mi misión",
+                        "ins1",
+                        CategoriaDonadorEnum.OCASIONAL,
+                        CategoriaDonadorEnum.COLABORADOR,
+                        TipoMisionEnum.COMPLETITUD
+                );
 
-  @Test
-  void testAgregarMisionYidNotNull() {
+        when(misionRepository.findById("1"))
+                .thenReturn(Optional.of(mision));
 
-    MisionDTO conId =
-            new MisionDTO(
-                    "id-inválido",
-                    "mision",
-                    "insignia",
-                    null,
-                    null,
-                    TipoMisionEnum.COMPLETITUD
-            );
+        service.guardarMision(mision);
 
-    assertThrows(
-            RuntimeException.class,
-            () -> fachada.agregarMision(conId)
-    );
-  }
+        assertEquals(
+                "Mi misión",
+                service.buscarMision("1").getNombre()
+        );
 
-  @Test
-  void testGetInsigniasDeDonadorSinInsignias() {
+        verify(misionRepository).save(mision);
+    }
 
-    when(
-            fachadaDonadores.buscarDonadorPorID(
-                    "donadorSinInsignias"
-            )
-    ).thenReturn(
-            new DonadorDTO(
-                    "donadorSinInsignias",
-                    "nombre",
-                    "apellido",
-                    20,
-                    "direccion",
-                    "mail",
-                    "telefono",
-                    EstadoDonadorEnum.VERIFICADO,
-                    "zona"
-            )
-    );
+    @Test
+    void obtenerOCrearDonadorExistente() {
 
-    MisionDTO mision =
-            fachada.agregarMision(
-                    new MisionDTO(
-                            null,
-                            "mision",
-                            "insignia",
-                            null,
-                            null,
-                            TipoMisionEnum.COMPLETITUD
-                    )
-            );
+        DonadorIncentivos donador =
+                new DonadorIncentivos("abc");
 
-    fachada.asignarMisionADonador(
-            "donadorSinInsignias",
-            mision
-    );
+        when(donadorRepository.findById("abc"))
+                .thenReturn(Optional.of(donador));
 
-    var insignias =
-            fachada.getInsigniasDeDonador(
-                    "donadorSinInsignias"
-            );
+        DonadorIncentivos resultado =
+                service.obtenerOCrearDonador("abc");
 
-    assertNotNull(insignias);
+        assertEquals("abc", resultado.getId());
 
-    assertTrue(insignias.isEmpty());
-  }
+        verify(donadorRepository, never())
+                .save(any());
+    }
 
-  @Test
-  void testGetMisionEnCursoDeDonadorSinMision() {
+    @Test
+    void obtenerOCrearDonadorNuevo() {
 
-    when(
-            fachadaDonadores.buscarDonadorPorID(
-                    "donadorSinMision"
-            )
-    ).thenReturn(
-            new DonadorDTO(
-                    "donadorSinMision",
-                    "nombre",
-                    "apellido",
-                    20,
-                    "direccion",
-                    "mail",
-                    "telefono",
-                    EstadoDonadorEnum.VERIFICADO,
-                    "zona"
-            )
-    );
+        when(donadorRepository.findById("nuevo"))
+                .thenReturn(Optional.empty());
 
-    fachada.asignarInsigniaADonador(
-            "donadorSinMision",
-            new InsigniaDTO(
-                    "id",
-                    "nombre",
-                    "desc"
-            )
-    );
+        DonadorIncentivos resultado =
+                service.obtenerOCrearDonador("nuevo");
 
-    MisionDTO mision =
-            fachada.getMisionEnCursoDeDonador(
-                    "donadorSinMision"
-            );
+        assertEquals("nuevo", resultado.getId());
 
-    assertNull(mision);
-  }
-}*/
+        verify(donadorRepository)
+                .save(any(DonadorIncentivos.class));
+    }
+
+    @Test
+    void obtenerDonadorInexistenteLanzaExcepcion() {
+
+        when(donadorRepository.findById("x"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                RuntimeException.class,
+                () -> service.obtenerDonador("x")
+        );
+    }
+
+    @Test
+    void buscarTodasLasInsignias() {
+
+        when(insigniaRepository.findAll())
+                .thenReturn(
+                        List.of(
+                                new Insignia(
+                                        "1",
+                                        "A",
+                                        "B"
+                                )
+                        )
+                );
+
+        assertEquals(
+                1,
+                service.buscarTodasLasInsignias().size()
+        );
+    }
+
+    @Test
+    void buscarTodasLasMisiones() {
+
+        when(misionRepository.findAll())
+                .thenReturn(List.of());
+
+        assertTrue(
+                service.buscarTodasLasMisiones().isEmpty()
+        );
+    }
+}
+
+*/
