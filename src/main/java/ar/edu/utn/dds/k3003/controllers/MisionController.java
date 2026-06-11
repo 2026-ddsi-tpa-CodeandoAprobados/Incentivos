@@ -10,30 +10,24 @@ import java.util.List;
 @RequestMapping("/misiones")
 public class MisionController {
 
-    private Fachada fachada =
-            new Fachada();
+    private final Fachada fachada;
+
+    public MisionController(Fachada fachada) {
+        this.fachada = fachada;
+    }
 
     @PostMapping
-    public MisionDTO crear(
-            @RequestBody MisionDTO mision
-    ) {
-
-        return fachada.agregarMision(
-                mision
-        );
+    public MisionDTO crear(@RequestBody MisionDTO mision) {
+        return fachada.agregarMision(mision);
     }
 
     @GetMapping
     public List<MisionDTO> listar() {
-
         return fachada.getMisiones();
     }
 
     @GetMapping("/{id}")
-    public MisionDTO buscar(
-            @PathVariable String id
-    ) {
-
+    public MisionDTO buscar(@PathVariable String id) {
         return fachada.getMision(id);
     }
 }

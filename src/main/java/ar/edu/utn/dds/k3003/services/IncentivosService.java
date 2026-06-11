@@ -10,9 +10,15 @@ import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
 import ar.edu.utn.dds.k3003.repositories.MisionRepository;
 
 import java.util.List;
+import org.springframework.stereotype.Service;
 
+
+
+
+
+
+@Service
 public class IncentivosService {
-
     private DonadorRepository donadorRepository;
 
     private MisionRepository misionRepository;
@@ -26,9 +32,7 @@ public class IncentivosService {
     ) {
 
         this.donadorRepository = donadorRepository;
-
         this.misionRepository = misionRepository;
-
         this.insigniaRepository = insigniaRepository;
     }
 
@@ -36,80 +40,70 @@ public class IncentivosService {
     // INSIGNIAS
     // =========================
 
-    public void guardarInsignia(
-            Insignia insignia
-    ) {
+    public void guardarInsignia(Insignia insignia) {
 
-        insigniaRepository.guardar(insignia);
+        insigniaRepository.save(insignia);
     }
 
     public Insignia buscarInsignia(
             String id
     ) {
 
-        return insigniaRepository.buscar(id);
+        return insigniaRepository
+                .findById(id)
+                .orElse(null);
     }
 
     public List<Insignia> buscarTodasLasInsignias() {
 
-        return insigniaRepository.buscarTodos();
+        return insigniaRepository.findAll();
     }
 
     // =========================
     // MISIONES
     // =========================
 
-    public void guardarMision(
-            Mision mision
-    ) {
-
-        misionRepository.guardar(mision);
+    public void guardarMision(Mision mision) {
+        misionRepository.save(mision);
     }
 
-    public Mision buscarMision(
-            String id
-    ) {
+    public Mision buscarMision(String id) {
 
-        return misionRepository.buscar(id);
+        return misionRepository
+                .findById(id)
+                .orElse(null);
     }
 
     public List<Mision> buscarTodasLasMisiones() {
 
-        return misionRepository.buscarTodos();
+        return misionRepository.findAll();
     }
 
     // =========================
     // DONADORES
     // =========================
 
-    public DonadorIncentivos obtenerDonador(
-            String id
-    ) {
-
+    public DonadorIncentivos obtenerDonador(String id) {
         DonadorIncentivos donador =
-                donadorRepository.buscar(id);
-
+                donadorRepository
+                        .findById(id)
+                        .orElse(null);
         if (donador == null) {
             throw new RuntimeException();
         }
-
         return donador;
     }
 
-    public DonadorIncentivos obtenerOCrearDonador(
-            String id
-    ) {
+    public DonadorIncentivos obtenerOCrearDonador(String id) {
 
         DonadorIncentivos donador =
-                donadorRepository.buscar(id);
-
+                donadorRepository
+                        .findById(id)
+                        .orElse(null);
         if (donador == null) {
-
             donador = new DonadorIncentivos(id);
-
-            donadorRepository.guardar(donador);
+            donadorRepository.save(donador);
         }
-
         return donador;
     }
 
@@ -121,22 +115,18 @@ public class IncentivosService {
             String donadorID,
             Insignia insignia
     ) {
-
-        DonadorIncentivos donador =
-                obtenerOCrearDonador(donadorID);
-
+        DonadorIncentivos donador = obtenerOCrearDonador(donadorID);
         donador.agregarInsignia(insignia);
+        donadorRepository.save(donador);
     }
 
     public void asignarMision(
             String donadorID,
             Mision mision
     ) {
-
-        DonadorIncentivos donador =
-                obtenerOCrearDonador(donadorID);
-
+        DonadorIncentivos donador = obtenerOCrearDonador(donadorID);
         donador.setMisionEnCurso(mision);
+        donadorRepository.save(donador);
     }
 
     // =========================
@@ -147,11 +137,9 @@ public class IncentivosService {
             String donadorID,
             Donacion donacion
     ) {
-
-        DonadorIncentivos donador =
-                obtenerOCrearDonador(donadorID);
-
+        DonadorIncentivos donador = obtenerOCrearDonador(donadorID);
         donador.agregarDonacion(donacion);
+        donadorRepository.save(donador);
     }
 
     // =========================
@@ -162,42 +150,20 @@ public class IncentivosService {
             String donadorID
     ) {
 
-        DonadorIncentivos donador =
-                obtenerDonador(donadorID);
-
-        Mision mision =
-                donador.getMisionEnCurso();
-
+        DonadorIncentivos donador = obtenerDonador(donadorID);
+        Mision mision = donador.getMisionEnCurso();
         if (mision == null) {
             return;
         }
-
-        ProcesadorMisiones procesador =
-                new ProcesadorMisiones();
-
-        boolean cumplida =
-                procesador.procesar(
-                        mision,
-                        donador.getDonaciones()
-                );
-
+        ProcesadorMisiones procesador = new ProcesadorMisiones();
+        boolean cumplida = procesador.procesar(mision, donador.getDonaciones());
         if (cumplida) {
-
-            donador.setCategoria(
-                    mision.getCategoriaFin()
-            );
-
-            Insignia insignia =
-                    buscarInsignia(
-                            mision.getInsigniaID()
-                    );
-
+            donador.setCategoria(mision.getCategoriaFin());
+            Insignia insignia = buscarInsignia(mision.getInsigniaID());
             if (insignia != null) {
-
-                donador.agregarInsignia(
-                        insignia
-                );
+                donador.agregarInsignia(insignia);
             }
+            donadorRepository.save(donador);
         }
     }
 }

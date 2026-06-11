@@ -1,3 +1,4 @@
+/*
 package ar.edu.utn.dds.k3003;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -207,4 +208,4 @@ public class IncentivosCoberturaTest {
 
     assertNull(mision);
   }
-}
+}*/

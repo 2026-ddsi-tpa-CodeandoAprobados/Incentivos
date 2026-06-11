@@ -1,15 +1,32 @@
 package ar.edu.utn.dds.k3003.model;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
 
+@Entity
 public class Mision {
 
+  @Id
   private String id;
+
   private String nombre;
+
   private String insigniaID;
+
+  @Enumerated(EnumType.STRING)
   private CategoriaDonadorEnum categoriaInicio;
+
+  @Enumerated(EnumType.STRING)
   private CategoriaDonadorEnum categoriaFin;
+
+  @Enumerated(EnumType.STRING)
   private TipoMisionEnum tipo;
+
+  public Mision() {
+  }
 
   public Mision(
           String id,

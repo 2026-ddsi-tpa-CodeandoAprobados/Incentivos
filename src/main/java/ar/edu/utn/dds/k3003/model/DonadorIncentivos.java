@@ -1,31 +1,40 @@
 package ar.edu.utn.dds.k3003.model;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
+import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Entity
 public class DonadorIncentivos {
 
+  @Id
   private String id;
 
+  @Enumerated(EnumType.STRING)
   private CategoriaDonadorEnum categoria;
 
+  @ManyToOne
   private Mision misionEnCurso;
 
+  @ManyToMany
   private List<Insignia> insignias;
 
+  @Transient
   private List<Donacion> donaciones;
+
+  public DonadorIncentivos() {
+    this.insignias = new ArrayList<>();
+    this.donaciones = new ArrayList<>();
+  }
 
   public DonadorIncentivos(String id) {
 
+    this();
+
     this.id = id;
-
     this.categoria = CategoriaDonadorEnum.OCASIONAL;
-
-    this.insignias = new ArrayList<>();
-
-    this.donaciones = new ArrayList<>();
   }
 
   public String getId() {

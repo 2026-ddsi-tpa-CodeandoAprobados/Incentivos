@@ -10,30 +10,24 @@ import java.util.List;
 @RequestMapping("/insignias")
 public class InsigniaController {
 
-    private Fachada fachada =
-            new Fachada();
+    private final Fachada fachada;
+
+    public InsigniaController(Fachada fachada) {
+        this.fachada = fachada;
+    }
 
     @PostMapping
-    public InsigniaDTO crear(
-            @RequestBody InsigniaDTO insignia
-    ) {
-
-        return fachada.agregarInsignia(
-                insignia
-        );
+    public InsigniaDTO crear(@RequestBody InsigniaDTO insignia) {
+        return fachada.agregarInsignia(insignia);
     }
 
     @GetMapping
     public List<InsigniaDTO> listar() {
-
         return fachada.getInsignias();
     }
 
     @GetMapping("/{id}")
-    public InsigniaDTO buscar(
-            @PathVariable String id
-    ) {
-
+    public InsigniaDTO buscar(@PathVariable String id) {
         return fachada.getInsignia(id);
     }
 }

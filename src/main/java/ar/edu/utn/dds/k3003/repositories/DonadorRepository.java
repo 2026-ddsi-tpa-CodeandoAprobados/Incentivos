@@ -1,22 +1,11 @@
 package ar.edu.utn.dds.k3003.repositories;
 
 import ar.edu.utn.dds.k3003.model.DonadorIncentivos;
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public class DonadorRepository {
+@Repository
+public interface DonadorRepository
+        extends JpaRepository<DonadorIncentivos, String> {
 
-    private Map<String, DonadorIncentivos> data = new HashMap<>();
-
-    public DonadorIncentivos buscar(String id) {
-        return data.get(id);
-    }
-
-    public void guardar(DonadorIncentivos donador) {
-        data.put(donador.getId(), donador);
-    }
-
-    public boolean existe(String id) {
-        return data.containsKey(id);
-    }
 }
