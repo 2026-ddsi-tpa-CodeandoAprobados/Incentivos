@@ -5,10 +5,10 @@ import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaIncentivos;
-import ar.edu.utn.dds.k3003.exceptions.DonadorNoEncontradoException;
 import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.services.IncentivosService;
 import org.springframework.stereotype.Component;
+import ar.edu.utn.dds.k3003.clients.DonadoresClient;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -20,11 +20,18 @@ public class Fachada implements FachadaIncentivos {
   private final IncentivosService service;
   private FachadaDonadoresYEntidades fachadaDonadoresYEntidades;
   private FachadaDonaciones fachadaDonaciones;
+  private final DonadoresClient donadoresClient;
+  private final DonacionesClient donacionesClient;
 
-  public Fachada(IncentivosService service) {
+  public Fachada(
+          IncentivosService service,
+          DonadoresClient donadoresClient,
+          DonacionesClient donacionesClient
+  ) {
     this.service = service;
+    this.donadoresClient = donadoresClient;
+    this.donacionesClient = donacionesClient;
   }
-  
 
   @Override
   public void setFachadaDonadoresYEntidades(FachadaDonadoresYEntidades fachada) {
@@ -190,16 +197,13 @@ public class Fachada implements FachadaIncentivos {
   }
 
   private void validarDonador(String donadorID) {
-    if (fachadaDonadoresYEntidades == null) {
-      return;
-    }
-
     try {
-      fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
-    } catch (DonadorNoEncontradoException e) {
-      throw new RuntimeException();
+      donadoresClient.buscarDonadorPorID(donadorID);
+    } catch (Exception e) {
+      throw new RuntimeException("Donador no encontrado", e);
     }
   }
+
 
   private MisionDTO toDTO(Mision m) {
     return new MisionDTO(
