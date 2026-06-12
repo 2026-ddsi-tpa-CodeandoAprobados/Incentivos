@@ -1,7 +1,7 @@
 package ar.edu.utn.dds.k3003.controllers;
 
 import ar.edu.utn.dds.k3003.services.IncentivosService;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,7 +15,7 @@ public class AdminController {
         this.service = service;
     }
 
-    @PostMapping("/reset")
+    @DeleteMapping("/db")
     public void reset() {
         service.reset();
     }
