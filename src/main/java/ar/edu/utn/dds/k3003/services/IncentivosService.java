@@ -1,6 +1,6 @@
 package ar.edu.utn.dds.k3003.services;
 
-import ar.edu.utn.dds.k3003.model.Donacion;
+import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
 import ar.edu.utn.dds.k3003.model.DonadorIncentivos;
 import ar.edu.utn.dds.k3003.model.Insignia;
 import ar.edu.utn.dds.k3003.model.Mision;
@@ -130,35 +130,21 @@ public class IncentivosService {
     }
 
     // =========================
-    // DONACIONES
-    // =========================
-
-    public void agregarDonacion(
-            String donadorID,
-            Donacion donacion
-    ) {
-        DonadorIncentivos donador = obtenerOCrearDonador(donadorID);
-        donador.agregarDonacion(donacion);
-        donadorRepository.save(donador);
-    }
-
-    // =========================
     // PROCESAMIENTO
     // =========================
 
     public void procesarDonador(
-            String donadorID
+            String donadorID,
+            List<DonacionDTO> donaciones
     ) {
-
         DonadorIncentivos donador = obtenerDonador(donadorID);
         Mision mision = donador.getMisionEnCurso();
         if (mision == null) {
             return;
         }
         ProcesadorMisiones procesador = new ProcesadorMisiones();
-        boolean cumplida = procesador.procesar(mision, donador.getDonaciones());
+        boolean cumplida = procesador.procesar(mision, donaciones);
         if (cumplida) {
-            donador.setCategoria(mision.getCategoriaFin());
             Insignia insignia = buscarInsignia(mision.getInsigniaID());
             if (insignia != null) {
                 donador.agregarInsignia(insignia);
@@ -166,7 +152,6 @@ public class IncentivosService {
             donadorRepository.save(donador);
         }
     }
-
 
     public void reset() {
         donadorRepository.deleteAll();

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/donadores")
+@RequestMapping("/incentivos-donador")
 public class DonadorIncentivosController {
 
     private final Fachada fachada;

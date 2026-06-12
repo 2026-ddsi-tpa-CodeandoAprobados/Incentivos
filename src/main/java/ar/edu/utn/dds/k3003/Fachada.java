@@ -1,5 +1,6 @@
 package ar.edu.utn.dds.k3003;
 
+import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
@@ -42,10 +43,6 @@ public class Fachada implements FachadaIncentivos {
   @Override
   public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) {
     this.fachadaDonaciones = fachadaDonaciones;
-  }
-
-  public void agregarDonacionADonador(String donadorID, Donacion donacion) {
-    service.agregarDonacion(donadorID, donacion);
   }
 
   @Override
@@ -160,8 +157,13 @@ public class Fachada implements FachadaIncentivos {
     }
 
     validarDonador(donadorID);
-    service.procesarDonador(donadorID);
+
+    List<DonacionDTO> donaciones =
+            donacionesClient.buscarPorDonador(donadorID);
+
+    service.procesarDonador(donadorID, donaciones);
   }
+
 
   public List<InsigniaDTO> getInsignias() {
     return service.buscarTodasLasInsignias()

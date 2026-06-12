@@ -2,16 +2,22 @@ package ar.edu.utn.dds.k3003.model;
 
 import java.util.List;
 
+import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
+
 public class EstrategiaRevolucionDonadora implements EstrategiaMision {
 
     @Override
-    public boolean estaCumplida(List<Donacion> donaciones) {
+    public boolean estaCumplida(List<DonacionDTO> donaciones) {
 
-        long grandesDonaciones =
-                donaciones.stream()
-                        .filter(d -> d.getCantidad() > 50)
-                        .count();
+        long grandes = donaciones.stream()
+                .filter(d ->
+                        d.detallesProductosDTO()
+                                .stream()
+                                .mapToInt(det -> det.cantidadProducto())
+                                .sum() > 50
+                )
+                .count();
 
-        return grandesDonaciones > 10;
+        return grandes > 10;
     }
 }

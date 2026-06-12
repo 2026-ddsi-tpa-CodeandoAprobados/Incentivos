@@ -1,8 +1,9 @@
 package ar.edu.utn.dds.k3003.model;
 
 import java.util.List;
+import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
 
 public interface EstrategiaMision {
 
-    boolean estaCumplida(List<Donacion> donaciones);
+    boolean estaCumplida(List<DonacionDTO> donaciones);
 }
