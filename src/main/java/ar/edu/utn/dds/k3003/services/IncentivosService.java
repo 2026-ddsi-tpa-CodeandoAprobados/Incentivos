@@ -166,4 +166,12 @@ public class IncentivosService {
             donadorRepository.save(donador);
         }
     }
+
+
+    public void reset() {
+        donadorRepository.deleteAll();
+        misionRepository.deleteAll();
+        insigniaRepository.deleteAll();
+    }
 }
+
