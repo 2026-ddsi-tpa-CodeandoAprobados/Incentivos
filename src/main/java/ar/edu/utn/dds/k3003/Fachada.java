@@ -9,6 +9,7 @@ import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.services.IncentivosService;
 import org.springframework.stereotype.Component;
 import ar.edu.utn.dds.k3003.clients.DonadoresClient;
+import ar.edu.utn.dds.k3003.clients.DonacionesClient;
 
 import java.util.List;
 import java.util.NoSuchElementException;
