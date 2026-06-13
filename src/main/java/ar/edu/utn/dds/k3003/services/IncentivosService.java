@@ -5,6 +5,7 @@ import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DetalleProductoDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
 import ar.edu.utn.dds.k3003.clients.CategoriasClient;
+import ar.edu.utn.dds.k3003.metrics.IncentivosMetrics;
 import ar.edu.utn.dds.k3003.model.DonadorIncentivos;
 import ar.edu.utn.dds.k3003.model.Insignia;
 import ar.edu.utn.dds.k3003.model.Mision;
@@ -31,7 +32,7 @@ public class IncentivosService {
     private DonadorRepository donadorRepository;
 
     private MisionRepository misionRepository;
-
+    private final IncentivosMetrics metrics;
     private InsigniaRepository insigniaRepository;
     private final DonadoresClient donadoresClient;
     private final CategoriasClient categoriasClient;
@@ -41,13 +42,15 @@ public class IncentivosService {
             MisionRepository misionRepository,
             InsigniaRepository insigniaRepository,
             CategoriasClient categoriasClient,
-            DonadoresClient donadoresClient
+            DonadoresClient donadoresClient,
+            IncentivosMetrics metrics
     ) {
         this.donadorRepository = donadorRepository;
         this.misionRepository = misionRepository;
         this.insigniaRepository = insigniaRepository;
         this.categoriasClient = categoriasClient;
         this.donadoresClient = donadoresClient;
+        this.metrics = metrics;
     }
     // =========================
     // INSIGNIAS
@@ -170,6 +173,7 @@ public class IncentivosService {
             String donadorID,
             List<DonacionDTO> donaciones
     ) {
+        metrics.registrarProcesamiento();
         DonadorIncentivos donador = obtenerDonador(donadorID);
         Mision mision = donador.getMisionEnCurso();
         if (mision == null) {
@@ -182,11 +186,13 @@ public class IncentivosService {
                 categoriasClient
         );
         if (cumplida) {
+            metrics.registrarMisionCumplida();
             Insignia insignia = buscarInsignia(
                     mision.getInsigniaID()
             );
             if (insignia != null) {
                 donador.agregarInsignia(insignia);
+                metrics.registrarInsigniaAsignada();
             }
             // Actualiza la categoría del donador en el otro módulo
             donadoresClient.actualizarCategoria(
