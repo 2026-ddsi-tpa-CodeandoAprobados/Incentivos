@@ -6,6 +6,7 @@ import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaIncentivos;
+import ar.edu.utn.dds.k3003.clients.CategoriasClient;
 import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.services.IncentivosService;
 import org.springframework.stereotype.Component;
@@ -24,15 +25,18 @@ public class Fachada implements FachadaIncentivos {
   private FachadaDonaciones fachadaDonaciones;
   private final DonadoresClient donadoresClient;
   private final DonacionesClient donacionesClient;
+  private final CategoriasClient categoriasClient;
 
   public Fachada(
           IncentivosService service,
           DonadoresClient donadoresClient,
-          DonacionesClient donacionesClient
+          DonacionesClient donacionesClient,
+          CategoriasClient categoriasClient
   ) {
     this.service = service;
     this.donadoresClient = donadoresClient;
     this.donacionesClient = donacionesClient;
+    this.categoriasClient = categoriasClient;
   }
 
   @Override

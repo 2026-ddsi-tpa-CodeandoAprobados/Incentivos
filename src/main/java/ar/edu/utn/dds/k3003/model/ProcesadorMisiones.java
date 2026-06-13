@@ -3,17 +3,28 @@ package ar.edu.utn.dds.k3003.model;
 import java.util.List;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
+import ar.edu.utn.dds.k3003.clients.CategoriasClient;
 
 public class ProcesadorMisiones {
 
-    public boolean procesar(Mision mision, List<DonacionDTO> donaciones) {
+    public boolean procesar(
+            Mision mision,
+            List<DonacionDTO> donaciones,
+            CategoriasClient categoriasClient
+    ) {
 
-        EstrategiaMision estrategia = obtenerEstrategia(mision.getTipo());
+        EstrategiaMision estrategia =
+                obtenerEstrategia(mision.getTipo());
 
-        return estrategia.estaCumplida(donaciones);
+        return estrategia.estaCumplida(
+                donaciones,
+                categoriasClient
+        );
     }
 
-    private EstrategiaMision obtenerEstrategia(TipoMisionEnum tipo) {
+    private EstrategiaMision obtenerEstrategia(
+            TipoMisionEnum tipo
+    ) {
 
         return switch (tipo) {
 
