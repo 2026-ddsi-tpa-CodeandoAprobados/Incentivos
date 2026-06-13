@@ -57,14 +57,14 @@ public class IncentivosService {
     // =========================
 
     public void guardarInsignia(Insignia insignia) {
-
+        metrics.registrarInsigniaCreada();
         insigniaRepository.save(insignia);
     }
 
     public Insignia buscarInsignia(
             String id
     ) {
-
+        metrics.registrarConsultaInsignia();
         return insigniaRepository
                 .findById(id)
                 .orElse(null);
@@ -80,11 +80,12 @@ public class IncentivosService {
     // =========================
 
     public void guardarMision(Mision mision) {
+        metrics.registrarMisionCreada();
         misionRepository.save(mision);
     }
 
     public Mision buscarMision(String id) {
-
+        metrics.registrarConsultaMision();
         return misionRepository
                 .findById(id)
                 .orElse(null);
@@ -100,6 +101,7 @@ public class IncentivosService {
     // =========================
 
     public DonadorIncentivos obtenerDonador(String id) {
+        metrics.registrarConsultaDonador();
         DonadorIncentivos donador =
                 donadorRepository
                         .findById(id)
@@ -174,36 +176,39 @@ public class IncentivosService {
             List<DonacionDTO> donaciones
     ) {
         metrics.registrarProcesamiento();
-        DonadorIncentivos donador = obtenerDonador(donadorID);
-        Mision mision = donador.getMisionEnCurso();
-        if (mision == null) {
-            return;
-        }
-        ProcesadorMisiones procesador = new ProcesadorMisiones();
-        boolean cumplida = procesador.procesar(
-                mision,
-                donaciones,
-                categoriasClient
-        );
-        if (cumplida) {
-            metrics.registrarMisionCumplida();
-            Insignia insignia = buscarInsignia(
-                    mision.getInsigniaID()
-            );
-            if (insignia != null) {
-                donador.agregarInsignia(insignia);
-                metrics.registrarInsigniaAsignada();
+        try {
+            DonadorIncentivos donador = obtenerDonador(donadorID);
+            Mision mision = donador.getMisionEnCurso();
+            if (mision == null) {
+                return;
             }
-            // Actualiza la categoría del donador en el otro módulo
-            donadoresClient.actualizarCategoria(
-                    donadorID,
-                    new CategoriaRequest(mision.getCategoriaFin())
+            ProcesadorMisiones procesador = new ProcesadorMisiones();
+            boolean cumplida = procesador.procesar(
+                    mision,
+                    donaciones,
+                    categoriasClient
             );
-            donador.setMisionEnCurso(null);
-            donadorRepository.save(donador);
+            if (cumplida) {
+                metrics.registrarMisionCumplida();
+                Insignia insignia = buscarInsignia(
+                        mision.getInsigniaID()
+                );
+                if (insignia != null) {
+                    donador.agregarInsignia(insignia);
+                    metrics.registrarInsigniaAsignada();
+                }
+                donadoresClient.actualizarCategoria(
+                        donadorID,
+                        new CategoriaRequest(mision.getCategoriaFin())
+                );
+                donador.setMisionEnCurso(null);
+                donadorRepository.save(donador);
+            }
+        } catch (Exception e) {
+            metrics.registrarError();
+            throw e;
         }
     }
-
 
     public void reset() {
         donadorRepository.deleteAll();
