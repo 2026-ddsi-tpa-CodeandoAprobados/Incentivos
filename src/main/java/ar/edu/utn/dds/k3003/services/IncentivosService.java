@@ -178,6 +178,17 @@ public class IncentivosService {
         metrics.registrarProcesamiento();
         try {
             DonadorIncentivos donador = obtenerDonador(donadorID);
+            // Primero verificamos si perdió el progreso
+            // de alguna misión que ya había completado.
+            boolean perdioProgreso = verificarPerdidaDeProgreso(
+                    donador,
+                    donaciones
+            );
+            // Si perdió progreso, ya restauramos la misión anterior.
+            // No seguimos procesando en esta ejecución.
+            if (perdioProgreso) {
+                return;
+            }
             Mision mision = donador.getMisionEnCurso();
             if (mision == null) {
                 return;
@@ -201,6 +212,7 @@ public class IncentivosService {
                         donadorID,
                         new CategoriaRequest(mision.getCategoriaFin())
                 );
+                donador.completarMision(mision);
                 donador.setMisionEnCurso(null);
                 donadorRepository.save(donador);
             }
@@ -208,6 +220,46 @@ public class IncentivosService {
             metrics.registrarError();
             throw e;
         }
+    }
+
+
+    private boolean verificarPerdidaDeProgreso(
+            DonadorIncentivos donador,
+            List<DonacionDTO> donaciones
+    ) {
+        ProcesadorMisiones procesador = new ProcesadorMisiones();
+        List<Mision> misionesCompletadas =
+                List.copyOf(donador.getMisionesCompletadas());
+        for (Mision mision : misionesCompletadas) {
+            // actualmente solo DONACIONES_EXITOSAS.
+            if (mision.getTipo()
+                    != ar.edu.utn.dds.k3003.model.TipoMisionEnum.DONACIONES_EXITOSAS) {
+                continue;
+            }
+            boolean sigueCumplida = procesador.procesar(
+                    mision,
+                    donaciones,
+                    categoriasClient
+            );
+            if (!sigueCumplida) {
+                Insignia insignia =
+                        buscarInsignia(mision.getInsigniaID());
+                if (insignia != null) {
+                    donador.quitarInsignia(insignia);
+                }
+                donador.quitarMisionCompletada(mision);
+                // la misión vuelve a quedar activa
+                donador.setMisionEnCurso(mision);
+                // el donador vuelve a la categoría desd la cual había iniciado esta misión
+                donadoresClient.actualizarCategoria(
+                        donador.getId(),
+                        new CategoriaRequest(mision.getCategoriaInicio())
+                );
+                donadorRepository.save(donador);
+                return true;
+            }
+        }
+        return false;
     }
 
     public void reset() {

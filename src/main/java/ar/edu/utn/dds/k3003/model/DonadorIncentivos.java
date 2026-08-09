@@ -4,12 +4,11 @@ import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
 @Entity
 public class DonadorIncentivos {
 
   @Id
-  private String id; // es el donadorID externo
+  private String id;
 
   @ManyToOne
   private Mision misionEnCurso;
@@ -17,8 +16,12 @@ public class DonadorIncentivos {
   @ManyToMany
   private List<Insignia> insignias;
 
+  @ManyToMany
+  private List<Mision> misionesCompletadas;
+
   public DonadorIncentivos() {
     this.insignias = new ArrayList<>();
+    this.misionesCompletadas = new ArrayList<>();
   }
 
   public DonadorIncentivos(String id) {
@@ -44,5 +47,21 @@ public class DonadorIncentivos {
 
   public void agregarInsignia(Insignia insignia) {
     this.insignias.add(insignia);
+  }
+
+  public void quitarInsignia(Insignia insignia) {
+    this.insignias.remove(insignia);
+  }
+
+  public List<Mision> getMisionesCompletadas() {
+    return misionesCompletadas;
+  }
+
+  public void completarMision(Mision mision) {
+    this.misionesCompletadas.add(mision);
+  }
+
+  public void quitarMisionCompletada(Mision mision) {
+    this.misionesCompletadas.remove(mision);
   }
 }
