@@ -19,6 +19,8 @@ import ar.edu.utn.dds.k3003.clients.CategoriaRequest;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Service;
 
@@ -29,8 +31,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class IncentivosService {
+    private static final Logger log =
+            LoggerFactory.getLogger(IncentivosService.class);
     private DonadorRepository donadorRepository;
-
     private MisionRepository misionRepository;
     private final IncentivosMetrics metrics;
     private InsigniaRepository insigniaRepository;
@@ -70,6 +73,14 @@ public class IncentivosService {
                 .orElse(null);
     }
 
+    public void eliminarInsignia(String id) {
+        if (!insigniaRepository.existsById(id)) {
+            throw new RuntimeException("Insignia no encontrada");
+        }
+
+        insigniaRepository.deleteById(id);
+    }
+
     public List<Insignia> buscarTodasLasInsignias() {
 
         return insigniaRepository.findAll();
@@ -82,6 +93,14 @@ public class IncentivosService {
     public void guardarMision(Mision mision) {
         metrics.registrarMisionCreada();
         misionRepository.save(mision);
+    }
+
+    public void eliminarMision(String id) {
+        if (!misionRepository.existsById(id)) {
+            throw new RuntimeException("Mision no encontrada");
+        }
+
+        misionRepository.deleteById(id);
     }
 
     public Mision buscarMision(String id) {
@@ -242,6 +261,13 @@ public class IncentivosService {
                     categoriasClient
             );
             if (!sigueCumplida) {
+                log.warn(
+                        "PERDIDA DE PROGRESO - Donador {} dejo de cumplir la mision {}. Retrocede de {} a {}",
+                        donador.getId(),
+                        mision.getNombre(),
+                        mision.getCategoriaFin(),
+                        mision.getCategoriaInicio()
+                );
                 Insignia insignia =
                         buscarInsignia(mision.getInsigniaID());
                 if (insignia != null) {
