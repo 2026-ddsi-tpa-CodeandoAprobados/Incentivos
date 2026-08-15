@@ -55,6 +55,15 @@ public class IncentivosService {
         this.donadoresClient = donadoresClient;
         this.metrics = metrics;
     }
+
+    // =========================
+    // UTILS
+    // =========================
+
+    public List<DonadorIncentivos> obtenerTodosLosDonadores() {
+        return donadorRepository.findAll();
+    }
+
     // =========================
     // INSIGNIAS
     // =========================
@@ -142,6 +151,37 @@ public class IncentivosService {
             donadorRepository.save(donador);
         }
         return donador;
+    }
+
+    public DonadorIncentivos registrarNuevoDonador(String donadorID) {
+
+        DonadorIncentivos existente =
+                donadorRepository.findById(donadorID).orElse(null);
+
+        // Si ya existe, no lo modificamos ni le cambiamos la misión.
+        if (existente != null) {
+            return existente;
+        }
+        DonadorIncentivos donador =
+                new DonadorIncentivos(donadorID);
+        List<Mision> misionesIniciales =
+                misionRepository.findAll()
+                        .stream()
+                        .filter(m ->
+                                m.getCategoriaInicio()
+                                        == CategoriaDonadorEnum.OCASIONAL
+                        )
+                        .toList();
+
+        if (!misionesIniciales.isEmpty()) {
+            int indice =
+                    java.util.concurrent.ThreadLocalRandom.current()
+                            .nextInt(misionesIniciales.size());
+            Mision misionInicial =
+                    misionesIniciales.get(indice);
+            donador.setMisionEnCurso(misionInicial);
+        }
+        return donadorRepository.save(donador);
     }
 
     // =========================
