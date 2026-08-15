@@ -15,6 +15,7 @@ import ar.edu.utn.dds.k3003.repositories.InsigniaRepository;
 import ar.edu.utn.dds.k3003.repositories.MisionRepository;
 import ar.edu.utn.dds.k3003.clients.DonadoresClient;
 import ar.edu.utn.dds.k3003.clients.CategoriaRequest;
+import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 
 import java.util.HashSet;
 import java.util.List;
