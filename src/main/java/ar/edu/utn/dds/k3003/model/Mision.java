@@ -25,6 +25,9 @@ public class Mision {
   @Enumerated(EnumType.STRING)
   private TipoMisionEnum tipo;
 
+  // Solo aplica a DONACIONES_EXITOSAS. Si es null se usa el valor por defecto (20).
+  private Integer cantidadRequerida;
+
   public Mision() {
   }
 
@@ -66,5 +69,24 @@ public class Mision {
 
   public TipoMisionEnum getTipo() {
     return tipo;
+  }
+
+  public Integer getCantidadRequerida() {
+    return cantidadRequerida;
+  }
+
+  public void setCantidadRequerida(Integer cantidadRequerida) {
+    if (cantidadRequerida != null && cantidadRequerida < 1) {
+      throw new IllegalArgumentException(
+              "La cantidad requerida de donaciones debe ser al menos 1"
+      );
+    }
+    this.cantidadRequerida = cantidadRequerida;
+  }
+
+  public int cantidadRequeridaEfectiva() {
+    return cantidadRequerida != null
+            ? cantidadRequerida
+            : EstrategiaDonacionesExitosas.CANTIDAD_POR_DEFECTO;
   }
 }

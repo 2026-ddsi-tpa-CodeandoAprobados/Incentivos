@@ -14,7 +14,7 @@ public class ProcesadorMisiones {
     ) {
 
         EstrategiaMision estrategia =
-                obtenerEstrategia(mision.getTipo());
+                obtenerEstrategia(mision);
 
         return estrategia.estaCumplida(
                 donaciones,
@@ -23,16 +23,18 @@ public class ProcesadorMisiones {
     }
 
     private EstrategiaMision obtenerEstrategia(
-            TipoMisionEnum tipo
+            Mision mision
     ) {
 
-        return switch (tipo) {
+        return switch (mision.getTipo()) {
 
             case COMPLETITUD ->
                     new EstrategiaCompletitud();
 
             case DONACIONES_EXITOSAS ->
-                    new EstrategiaDonacionesExitosas();
+                    new EstrategiaDonacionesExitosas(
+                            mision.cantidadRequeridaEfectiva()
+                    );
 
             case DONACIONES_ASCENDENTES ->
                     new EstrategiaDonacionesAscendentes();

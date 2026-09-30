@@ -113,6 +113,14 @@ public class IncentivosService {
         misionRepository.deleteById(id);
     }
 
+    public Mision configurarCantidadRequerida(String id, Integer cantidad) {
+        Mision mision = misionRepository
+                .findById(id)
+                .orElseThrow(() -> new RuntimeException("Mision no encontrada"));
+        mision.setCantidadRequerida(cantidad);
+        return misionRepository.save(mision);
+    }
+
     public Mision buscarMision(String id) {
         metrics.registrarConsultaMision();
         return misionRepository

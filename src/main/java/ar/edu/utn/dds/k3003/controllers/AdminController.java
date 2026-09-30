@@ -38,7 +38,9 @@ public class AdminController {
     }
 
     @PostMapping("/agregar-misiones-base")
-    public String agregarMisionesBase() {
+    public String agregarMisionesBase(
+            @RequestParam(required = false) Integer cantidadDonacionesExitosas
+    ) {
         InsigniaDTO primerosPasos = insigniaController.crear(
                 new InsigniaDTO(
                         null,
@@ -77,7 +79,7 @@ public class AdminController {
                         TipoMisionEnum.COMPLETITUD
                 )
         );
-        misionController.crear(
+        MisionDTO donacionesExitosas = misionController.crear(
                 new MisionDTO(
                         null,
                         "Donaciones Exitosas",
@@ -87,6 +89,12 @@ public class AdminController {
                         TipoMisionEnum.DONACIONES_EXITOSAS
                 )
         );
+        if (cantidadDonacionesExitosas != null) {
+            service.configurarCantidadRequerida(
+                    donacionesExitosas.id(),
+                    cantidadDonacionesExitosas
+            );
+        }
         misionController.crear(
                 new MisionDTO(
                         null,
