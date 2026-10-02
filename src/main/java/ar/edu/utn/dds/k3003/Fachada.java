@@ -9,6 +9,8 @@ import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaIncentivos;
 import ar.edu.utn.dds.k3003.clients.CategoriasClient;
 import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.services.IncentivosService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import ar.edu.utn.dds.k3003.clients.DonadoresClient;
 import ar.edu.utn.dds.k3003.clients.DonacionesClient;
@@ -19,6 +21,8 @@ import java.util.UUID;
 
 @Component
 public class Fachada implements FachadaIncentivos {
+
+  private static final Logger log = LoggerFactory.getLogger(Fachada.class);
 
   private final IncentivosService service;
   private FachadaDonadoresYEntidades fachadaDonadoresYEntidades;
@@ -207,6 +211,7 @@ public class Fachada implements FachadaIncentivos {
     try {
       donadoresClient.buscarDonadorPorID(donadorID);
     } catch (Exception e) {
+      log.warn("Donador {} no encontrado en Donadores: {}", donadorID, e.getMessage());
       throw new RuntimeException("Donador no encontrado", e);
     }
   }

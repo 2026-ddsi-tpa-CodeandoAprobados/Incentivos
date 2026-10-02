@@ -119,6 +119,11 @@ public class IncentivosService {
                 .findById(id)
                 .orElseThrow(() -> new RuntimeException("Mision no encontrada"));
         mision.setCantidadRequerida(cantidad);
+        log.info(
+                "Mision '{}' configurada: ahora pide {} donaciones exitosas",
+                mision.getNombre(),
+                cantidad
+        );
         return misionRepository.save(mision);
     }
 
@@ -204,7 +209,15 @@ public class IncentivosService {
                     misionesIniciales.get(indice);
             donador.setMisionEnCurso(misionInicial);
         }
-        return donadorRepository.save(donador);
+        DonadorIncentivos guardado = donadorRepository.save(donador);
+        log.info(
+                "Donador {} registrado en Incentivos. Mision inicial: {}",
+                donadorID,
+                guardado.getMisionEnCurso() != null
+                        ? guardado.getMisionEnCurso().getNombre()
+                        : "ninguna"
+        );
+        return guardado;
     }
 
     // =========================
@@ -227,6 +240,11 @@ public class IncentivosService {
         DonadorIncentivos donador = obtenerOCrearDonador(donadorID);
         donador.setMisionEnCurso(mision);
         donadorRepository.save(donador);
+        log.info(
+                "Mision '{}' asignada al donador {}",
+                mision.getNombre(),
+                donadorID
+        );
     }
 
     // =========================
@@ -259,6 +277,11 @@ public class IncentivosService {
             List<DonacionDTO> donaciones
     ) {
         metrics.registrarProcesamiento();
+        log.info(
+                "Procesando donador {} ({} donaciones recibidas)",
+                donadorID,
+                donaciones == null ? 0 : donaciones.size()
+        );
         try {
             DonadorIncentivos donador = obtenerDonador(donadorID);
             // Primero verificamos si perdió el progreso
@@ -295,11 +318,25 @@ public class IncentivosService {
                         donadorID,
                         new CategoriaRequest(mision.getCategoriaFin())
                 );
+                // Se loguea recien cuando Donadores confirmo el cambio: si el PATCH
+                // falla, se hace rollback y la mision NO queda cumplida.
+                log.info(
+                        "MISION CUMPLIDA - Donador {} completo '{}'. Categoria {} -> {} actualizada en Donadores",
+                        donadorID,
+                        mision.getNombre(),
+                        mision.getCategoriaInicio(),
+                        mision.getCategoriaFin()
+                );
                 donador.completarMision(mision);
                 donador.setMisionEnCurso(null);
                 donadorRepository.save(donador);
             }
         } catch (Exception e) {
+            log.error(
+                    "Error procesando donador {}: {}",
+                    donadorID,
+                    e.getMessage()
+            );
             metrics.registrarError();
             throw e;
         }
@@ -353,6 +390,7 @@ public class IncentivosService {
     }
 
     public void reset() {
+        log.warn("RESET - Se borran donadores, misiones e insignias de Incentivos");
         donadorRepository.deleteAll();
         misionRepository.deleteAll();
         insigniaRepository.deleteAll();

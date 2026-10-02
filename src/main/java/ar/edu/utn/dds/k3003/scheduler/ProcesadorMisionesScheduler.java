@@ -2,10 +2,12 @@ package ar.edu.utn.dds.k3003.scheduler;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
 import ar.edu.utn.dds.k3003.clients.DonacionesClient;
+import ar.edu.utn.dds.k3003.logging.Traza;
 import ar.edu.utn.dds.k3003.services.IncentivosService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -39,6 +41,9 @@ public class ProcesadorMisionesScheduler {
         );
         int procesados = 0;
         for (String donadorId : donadorIds) {
+            // El cron no nace de un pedido web: se le da una traza propia a cada
+            // donador, así sus llamadas a Donadores y Donaciones quedan vinculadas.
+            MDC.put(Traza.MDC_TRAZA, "cron-" + Traza.nuevoId());
             try {
                 log.info(
                         "CRON INCENTIVOS - Procesando donador {}",
@@ -57,6 +62,8 @@ public class ProcesadorMisionesScheduler {
                         donadorId,
                         e.getMessage()
                 );
+            } finally {
+                MDC.remove(Traza.MDC_TRAZA);
             }
         }
         log.info(
