@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 
@@ -149,6 +150,19 @@ public class IncentivosService {
         return donador;
     }
 
+    // Ids de los donadores que tienen una mision en curso o misiones completadas.
+    // Las colecciones son LAZY: se leen dentro de una transaccion para que
+    // el cron (que corre fuera de un request web) no falle con LazyInitializationException.
+    @Transactional(readOnly = true)
+    public List<String> idsDeDonadoresConMisiones() {
+        return donadorRepository.findAll()
+                .stream()
+                .filter(d -> d.getMisionEnCurso() != null
+                        || !d.getMisionesCompletadas().isEmpty())
+                .map(DonadorIncentivos::getId)
+                .toList();
+    }
+
     public DonadorIncentivos obtenerOCrearDonador(String id) {
 
         DonadorIncentivos donador =
@@ -239,6 +253,7 @@ public class IncentivosService {
         }
     }
 */
+    @Transactional
     public void procesarDonador(
             String donadorID,
             List<DonacionDTO> donaciones

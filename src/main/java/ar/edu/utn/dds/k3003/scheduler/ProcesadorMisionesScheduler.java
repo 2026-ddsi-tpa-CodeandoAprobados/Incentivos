@@ -2,8 +2,6 @@ package ar.edu.utn.dds.k3003.scheduler;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
 import ar.edu.utn.dds.k3003.clients.DonacionesClient;
-import ar.edu.utn.dds.k3003.model.DonadorIncentivos;
-import ar.edu.utn.dds.k3003.repositories.DonadorRepository;
 import ar.edu.utn.dds.k3003.services.IncentivosService;
 
 import org.slf4j.Logger;
@@ -19,16 +17,13 @@ public class ProcesadorMisionesScheduler {
     private static final Logger log =
             LoggerFactory.getLogger(ProcesadorMisionesScheduler.class);
 
-    private final DonadorRepository donadorRepository;
     private final DonacionesClient donacionesClient;
     private final IncentivosService incentivosService;
 
     public ProcesadorMisionesScheduler(
-            DonadorRepository donadorRepository,
             DonacionesClient donacionesClient,
             IncentivosService incentivosService
     ) {
-        this.donadorRepository = donadorRepository;
         this.donacionesClient = donacionesClient;
         this.incentivosService = incentivosService;
     }
@@ -36,40 +31,30 @@ public class ProcesadorMisionesScheduler {
     @Scheduled(fixedDelayString = "#{@schedulerConfig.intervalo}")
     public void procesarMisiones() {
         log.info("CRON INCENTIVOS - Iniciando procesamiento periódico");
-        List<DonadorIncentivos> donadores =
-                donadorRepository.findAll();
+        List<String> donadorIds =
+                incentivosService.idsDeDonadoresConMisiones();
         log.info(
-                "CRON INCENTIVOS - Donadores encontrados en Incentivos: {}",
-                donadores.size()
+                "CRON INCENTIVOS - Donadores con misiones a procesar: {}",
+                donadorIds.size()
         );
         int procesados = 0;
-        for (DonadorIncentivos donador : donadores) {
+        for (String donadorId : donadorIds) {
             try {
-                boolean tieneMisionEnCurso =
-                        donador.getMisionEnCurso() != null;
-                boolean tieneMisionesCompletadas =
-                        !donador.getMisionesCompletadas().isEmpty();
-                if (!tieneMisionEnCurso &&
-                        !tieneMisionesCompletadas) {
-                    continue;
-                }
                 log.info(
                         "CRON INCENTIVOS - Procesando donador {}",
-                        donador.getId()
+                        donadorId
                 );
                 List<DonacionDTO> donaciones =
-                        donacionesClient.buscarPorDonador(
-                                donador.getId()
-                        );
+                        donacionesClient.buscarPorDonador(donadorId);
                 incentivosService.procesarDonador(
-                        donador.getId(),
+                        donadorId,
                         donaciones
                 );
                 procesados++;
             } catch (Exception e) {
                 log.error(
                         "CRON INCENTIVOS - Error procesando donador {}: {}",
-                        donador.getId(),
+                        donadorId,
                         e.getMessage()
                 );
             }
