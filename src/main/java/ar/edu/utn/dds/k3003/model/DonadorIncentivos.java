@@ -45,12 +45,17 @@ public class DonadorIncentivos {
     return insignias;
   }
 
+  // Sin duplicados: completar dos veces la misma mision no repite la insignia.
   public void agregarInsignia(Insignia insignia) {
-    this.insignias.add(insignia);
+    boolean yaLaTiene = this.insignias.stream()
+            .anyMatch(i -> i.getId().equals(insignia.getId()));
+    if (!yaLaTiene) {
+      this.insignias.add(insignia);
+    }
   }
 
   public void quitarInsignia(Insignia insignia) {
-    this.insignias.remove(insignia);
+    this.insignias.removeIf(i -> i.getId().equals(insignia.getId()));
   }
 
   public List<Mision> getMisionesCompletadas() {
@@ -58,10 +63,14 @@ public class DonadorIncentivos {
   }
 
   public void completarMision(Mision mision) {
-    this.misionesCompletadas.add(mision);
+    boolean yaCompletada = this.misionesCompletadas.stream()
+            .anyMatch(m -> m.getId().equals(mision.getId()));
+    if (!yaCompletada) {
+      this.misionesCompletadas.add(mision);
+    }
   }
 
   public void quitarMisionCompletada(Mision mision) {
-    this.misionesCompletadas.remove(mision);
+    this.misionesCompletadas.removeIf(m -> m.getId().equals(mision.getId()));
   }
 }
