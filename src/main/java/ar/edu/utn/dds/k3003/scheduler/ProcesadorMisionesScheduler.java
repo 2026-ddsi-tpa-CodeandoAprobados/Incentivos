@@ -3,6 +3,7 @@ package ar.edu.utn.dds.k3003.scheduler;
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
 import ar.edu.utn.dds.k3003.clients.DonacionesClient;
 import ar.edu.utn.dds.k3003.logging.Traza;
+import ar.edu.utn.dds.k3003.metrics.IncentivosMetrics;
 import ar.edu.utn.dds.k3003.services.IncentivosService;
 
 import org.slf4j.Logger;
@@ -21,17 +22,21 @@ public class ProcesadorMisionesScheduler {
 
     private final DonacionesClient donacionesClient;
     private final IncentivosService incentivosService;
+    private final IncentivosMetrics metrics;
 
     public ProcesadorMisionesScheduler(
             DonacionesClient donacionesClient,
-            IncentivosService incentivosService
+            IncentivosService incentivosService,
+            IncentivosMetrics metrics
     ) {
         this.donacionesClient = donacionesClient;
         this.incentivosService = incentivosService;
+        this.metrics = metrics;
     }
 
     @Scheduled(fixedDelayString = "#{@schedulerConfig.intervalo}")
     public void procesarMisiones() {
+        metrics.registrarCronEjecucion();
         log.info("CRON INCENTIVOS - Iniciando procesamiento periódico");
         List<String> donadorIds =
                 incentivosService.idsDeDonadoresConMisiones();
@@ -57,6 +62,7 @@ public class ProcesadorMisionesScheduler {
                 );
                 procesados++;
             } catch (Exception e) {
+                metrics.registrarCronError();
                 log.error(
                         "CRON INCENTIVOS - Error procesando donador {}: {}",
                         donadorId,

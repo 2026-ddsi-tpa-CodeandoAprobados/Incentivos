@@ -314,9 +314,9 @@ public class IncentivosService {
                     donador.agregarInsignia(insignia);
                     metrics.registrarInsigniaAsignada();
                 }
-                donadoresClient.actualizarCategoria(
+                actualizarCategoriaEnDonadores(
                         donadorID,
-                        new CategoriaRequest(mision.getCategoriaFin())
+                        mision.getCategoriaFin()
                 );
                 // Se loguea recien cuando Donadores confirmo el cambio: si el PATCH
                 // falla, se hace rollback y la mision NO queda cumplida.
@@ -378,15 +378,39 @@ public class IncentivosService {
                 // la misión vuelve a quedar activa
                 donador.setMisionEnCurso(mision);
                 // el donador vuelve a la categoría desd la cual había iniciado esta misión
-                donadoresClient.actualizarCategoria(
+                actualizarCategoriaEnDonadores(
                         donador.getId(),
-                        new CategoriaRequest(mision.getCategoriaInicio())
+                        mision.getCategoriaInicio()
                 );
+                metrics.registrarProgresoPerdido();
                 donadorRepository.save(donador);
                 return true;
             }
         }
         return false;
+    }
+
+    // Unico punto donde Incentivos modifica la categoria en Donadores:
+    // cuenta y loguea las fallas de esa integracion.
+    private void actualizarCategoriaEnDonadores(
+            String donadorID,
+            CategoriaDonadorEnum categoria
+    ) {
+        try {
+            donadoresClient.actualizarCategoria(
+                    donadorID,
+                    new CategoriaRequest(categoria)
+            );
+        } catch (RuntimeException e) {
+            metrics.registrarErrorIntegracion("donadores");
+            log.error(
+                    "No se pudo actualizar la categoria {} del donador {} en Donadores: {}",
+                    categoria,
+                    donadorID,
+                    e.getMessage()
+            );
+            throw e;
+        }
     }
 
     public void reset() {

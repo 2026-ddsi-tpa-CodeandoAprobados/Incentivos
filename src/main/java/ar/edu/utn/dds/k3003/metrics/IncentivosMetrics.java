@@ -21,8 +21,13 @@ public class IncentivosMetrics {
     private final Counter consultasInsignia;
     private final Counter consultasMision;
     private final Counter errores;
+    private final Counter progresoPerdido;
+    private final Counter cronEjecuciones;
+    private final Counter cronErrores;
+    private final MeterRegistry registry;
 
     public IncentivosMetrics(MeterRegistry registry) {
+        this.registry = registry;
 
         this.donadoresProcesados =
                 registry.counter("incentivos.donadores.procesados");
@@ -50,6 +55,40 @@ public class IncentivosMetrics {
 
         this.errores =
                 registry.counter("incentivos.errores");
+
+        // Metricas de negocio y de operacion propias del dominio
+        this.progresoPerdido =
+                registry.counter("incentivos.progreso.perdido");
+
+        this.cronEjecuciones =
+                registry.counter("incentivos.cron.ejecuciones");
+
+        this.cronErrores =
+                registry.counter("incentivos.cron.errores");
+
+        // Se registra de entrada para que aparezca en Datadog aunque no haya fallas.
+        registry.counter("incentivos.integracion.errores", "destino", "donadores");
+    }
+
+    public void registrarProgresoPerdido() {
+        progresoPerdido.increment();
+        log.warn("METRICA INCENTIVOS - Progreso perdido");
+    }
+
+    public void registrarCronEjecucion() {
+        cronEjecuciones.increment();
+    }
+
+    public void registrarCronError() {
+        cronErrores.increment();
+        log.error("METRICA INCENTIVOS - Error en el cron");
+    }
+
+    // destino: "donadores" o "donaciones"
+    public void registrarErrorIntegracion(String destino) {
+        registry.counter("incentivos.integracion.errores", "destino", destino)
+                .increment();
+        log.error("METRICA INCENTIVOS - Error de integracion con {}", destino);
     }
 
     public void registrarProcesamiento() {
